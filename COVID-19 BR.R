@@ -26,7 +26,7 @@ ui = bs4DashPage(
   loading_duration = 5,
   loading_background = "#1C1C1C",
   # Nome do Dashboard
-  title = "COVID-19",
+  title = "COVID-19 (BRASIL)",
   # Menu Superior
   navbar = bs4DashNavbar(
     skin = 'light'
@@ -35,7 +35,7 @@ ui = bs4DashPage(
   sidebar = bs4DashSidebar(
     skin = "light",
     status = "primary",
-    title = "COVID-19",
+    title = "COVID-19 (BRASIL)",
     src = 'https://www.monmouth.edu/covid-19/wp-content/uploads/sites/770/2020/03/cdc-w9KEokhajKw-unsplash.jpg',
     brandColor = "gray-light",
     bs4SidebarMenu(
