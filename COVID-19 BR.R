@@ -70,7 +70,7 @@ ui = bs4DashPage(
   # Footer
   footer = bs4DashFooter(
     copyrights = a(
-      href = "https://github.com/romsiq/Projetos", 
+      href = "https://github.com/mppallante", 
       target = "_blank", "©MPPallante"
     ),
     right_text = lubridate::year(Sys.time())
