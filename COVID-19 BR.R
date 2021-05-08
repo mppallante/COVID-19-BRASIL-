@@ -70,7 +70,7 @@ ui = bs4DashPage(
   # Footer
   footer = bs4DashFooter(
     copyrights = a(
-      href = "https://github.com/mppallante", 
+      href = "https://mppallante.wixsite.com/mppallante", 
       target = "_blank", "©MPPallante"
     ),
     right_text = lubridate::year(Sys.time())
@@ -150,10 +150,10 @@ ui = bs4DashPage(
         fluidPage(
           bs4Jumbotron(
             title = "COVID-19",
-            lead = "Desenvolvido para análise dos casos de COVID-19 no Brasil - 2020",
+            lead = "Desenvolvido para análise dos casos de COVID-19 no Brasil",
             status = "primary",
-            btn_name = 'COVID-19',
-            href = "https://www.google.com/search?q=covid-19&rlz=1C1SQJL_pt-BRBR864BR864&oq=cov&aqs=chrome.0.69i59j69i57j69i60l3.933j0j1&sourceid=chrome&ie=UTF-8"
+            btn_name = 'COVID-19 - GITHUB',
+            href = "https://github.com/mppallante/COVID19-BR"
           )
         )
       )
@@ -167,7 +167,10 @@ server <- function(input, output, session) {
   # Base de Dados
   # Série Temporal - Brasil
   show_modal_spinner(spin = "semipolar", text = "Processando")
-  citiesTimes <- read_csv(url('https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time.csv'))
+  citiesTimes <- gzcon(url(paste("https://github.com/wcota/covid19br/blob/master/cases-brazil-cities-time.csv.gz?raw=false",
+                         "citiesTimes.csv.gz", sep="")))
+  citiesTimes <- read_csv(citiesTimes)
+  #citiesTimes <- read_csv(url('https://github.com/wcota/covid19br/blob/master/cases-brazil-cities-time.csv.gz?raw=true'))
   # Cidades
   cities <- read_csv(url('https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities.csv'))
   # GPS Cidades
@@ -230,6 +233,7 @@ server <- function(input, output, session) {
                                  '<b>Volumetria: </b>', total)
       )
   })
+  
   # Volumetria por Estados (COVID-19)
   output$NumEstado <- renderEcharts4r({
     brasil <- as.data.table(brasil)
@@ -248,16 +252,19 @@ server <- function(input, output, session) {
     states$date <- lubridate::ymd(states$date)
     states$state <- replace(states$state, states$state == 'TOTAL', 'BRASIL')
     states <- subset(states, states$state != 'BRASIL')
-    states$state <- factor(states$state)
-    states <- arrange(states, desc(totalCases))
+    states$state <- as.character(states$state)
     states <- as.data.frame(states)
     states %>%
       group_by(state) %>%
-      e_charts(date) %>%
-      e_line(totalCases) %>%
-      e_tooltip(trigger = 'axis') 
+      e_charts(date, timeline = T) %>%
+      e_line(totalCases, legend = F) %>%
+      e_tooltip(trigger = 'axis') %>% 
+      e_datazoom() %>% 
+      e_timeline_opts(top = 0)
   })
+  
   # Previsão do COVID-19 no Brasil (Casos e Mortes) - Projeção utilizando Facebook Phophet
+  # Casos Confirmados
   output$ConfirmedE_BR <- renderDygraph({
     show_modal_spinner(spin = "semipolar", text = "Processando")
     time <- states
@@ -267,12 +274,14 @@ server <- function(input, output, session) {
       ds = lubridate::ymd(time$date),
       y = time$totalCasesMS
     )
-    m <- prophet(time)
+    holiday <- subset(generated_holidays, generated_holidays$country == 'BR')
+    m <- prophet(time, holidays = holiday)
     future <- make_future_dataframe(m, periods = 15, freq = 'day')
     forecast <- predict(m, future)
     remove_modal_spinner()
     dyplot.prophet(m, forecast)
   })
+  # Mortes Confirmadas
   output$DeathsE_BR <- renderDygraph({
     show_modal_spinner(spin = "semipolar", text = "Processando")
     time <- states
@@ -282,12 +291,14 @@ server <- function(input, output, session) {
       ds = lubridate::ymd(time$date),
       y = time$deathsMS
     )
-    m <- prophet(time)
+    holiday <- subset(generated_holidays, generated_holidays$country == 'BR')
+    m <- prophet(time, holidays = holiday)
     future <- make_future_dataframe(m, periods = 15, freq = 'day')
     forecast <- predict(m, future)
     remove_modal_spinner()
     dyplot.prophet(m, forecast)
   })
+  
   # PREPARAÇÃO PARA O AGRUPAMENTO - Clusters
   nei <- citiesGPS
   nei <- subset(nei, nei$type == '1')
@@ -296,7 +307,7 @@ server <- function(input, output, session) {
   centros <- data.frame(km$centers)
   centros$Clusters <- c(1,2,3)
   centros <- arrange(centros, total)
-  centros$Risco <- c('Concentração Baixa', 'Concentração Média', 'Concentração Alta')
+  centros$Risco <- c('Risco: Baixo', 'Risco: Médio', 'Risco: Alto')
   pal <- colorFactor(c('Gold','DarkOrange','FireBrick'), levels = centros$Clusters)
   # Mapa - Cluster do Brasil - Riscos
   output$ClusterBrasil <- renderLeaflet({
