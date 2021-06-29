@@ -328,6 +328,7 @@ ui = bs4DashPage(
 # Server Side -------------------------------------------------------------
 
 server <- function(input, output, session) {
+  
   # Configurações do Loading (Tela de Carregamento - Gráficos)
   w <- Waiter$new(
     id = c("GeoBrasil","NumEstado","TimeEstado","ConfirmedE_BR","DeathsE_BR"), 
