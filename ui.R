@@ -55,9 +55,7 @@ ui = bs4DashPage(
           inputId = "triggerAction1",
           from = HTML("<strong>Desenvolvedor</strong>"),
           message = HTML("Atualização realizada!
-                         <br>Layout:2.0
-                         <br>R: 4.1.0
-                         <br>Rstudio: 1.4.1106"),
+                         <br>Layout:2.0"),
           image = "https://lh3.googleusercontent.com/ogw/ADGmqu_hZZbh1ioBDSRRb8W85PrmMbB07wcshDOJcM8V9g=s83-c-mo",
           time = "Hoje",
           color = "navy",
